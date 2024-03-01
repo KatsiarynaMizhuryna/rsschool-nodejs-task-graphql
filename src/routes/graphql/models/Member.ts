@@ -1,4 +1,4 @@
-import { GraphQLInt, GraphQLObjectType, GraphQLEnumType } from 'graphql';
+import { GraphQLInt, GraphQLObjectType, GraphQLEnumType, GraphQLFloat } from 'graphql';
 import { MemberTypeId } from '../../member-types/schemas.js';
 
 const MemberTypeEnumType = new GraphQLEnumType({
@@ -13,7 +13,7 @@ export const MemberType = new GraphQLObjectType({
   name: 'MemberType',
   fields: () => ({
     id: { type: MemberTypeEnumType },
-    discount: { type: GraphQLInt },
+    discount: { type: GraphQLFloat },
     postsLimitPerMonth: { type: GraphQLInt },
   }),
 });
