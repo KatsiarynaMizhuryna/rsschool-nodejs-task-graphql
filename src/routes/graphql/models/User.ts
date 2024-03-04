@@ -32,5 +32,37 @@ export const UserType = new GraphQLObjectType({
         return userPosts;
       },
     },
+    userSubscribedTo: {
+      type: new GraphQLList(UserType),
+      resolve: async (parent: { id: string }, _args, context: Context) => {
+        const userSubscribedTo = await context.prisma.user.findMany({
+          where: {
+            subscribedToUser: {
+              some: {
+                subscriberId: parent.id,
+              },
+            },
+          },
+        });
+
+        return userSubscribedTo;
+      },
+    },
+    subscribedToUser: {
+      type: new GraphQLList(UserType),
+      resolve: async (parent: { id: string }, _args, context: Context) => {
+        const subscribedToUsers = await context.prisma.user.findMany({
+          where: {
+            userSubscribedTo: {
+              some: {
+                authorId: parent.id,
+              },
+            },
+          },
+        });
+
+        return subscribedToUsers;
+      },
+    },
   }),
 });
