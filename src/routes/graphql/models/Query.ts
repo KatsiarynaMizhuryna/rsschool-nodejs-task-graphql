@@ -4,19 +4,40 @@ import { PostType } from './Post.js';
 import { PrismaClient } from '@prisma/client/index.js';
 import { ProfileType } from './Profile.js';
 import { UserType } from './User.js';
-import { MemberType } from './Member.js';
+import { MemberType, MemberTypeEnumType } from './Member.js';
+
+import {
+  ResolveTree,
+  parseResolveInfo,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
 import { MemberTypeId } from '../../member-types/schemas.js';
 
 export type Context = { prisma: PrismaClient };
-
 export const Query = new GraphQLObjectType({
   name: 'Query',
   fields: {
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_parent, _args, context: Context) => {
-        const allUsers = await context.prisma.user.findMany();
-        return allUsers;
+      resolve: async (_parent, _args, context: Context, info) => {
+        const resolveTree = parseResolveInfo(info) as ResolveTree;
+        const { fields } = simplifyParsedResolveInfoFragmentWithType(
+          resolveTree,
+          info.returnType,
+        );
+        const include: { subscribedToUser?: boolean; userSubscribedTo?: boolean } = {};
+
+        if ('subscribedToUser' in fields) {
+          include.subscribedToUser = true;
+        }
+
+        if ('userSubscribedTo' in fields) {
+          include.userSubscribedTo = true;
+        }
+
+        return await context.prisma.user.findMany({
+          include,
+        });
       },
     },
     user: {
@@ -28,14 +49,9 @@ export const Query = new GraphQLObjectType({
         const user = await context.prisma.user.findUnique({
           where: { id: userId },
         });
-
-        if (!user) {
-          throw new Error('User not found');
-        }
         return user;
       },
     },
-
     profiles: {
       type: new GraphQLList(ProfileType),
       resolve: async (_parent, _args, context: Context) => {
@@ -78,15 +94,15 @@ export const Query = new GraphQLObjectType({
     },
     memberTypes: {
       type: new GraphQLList(MemberType),
-      resolve: (_parent, _args, context: Context) => {
-        const memberTypes = context.prisma.memberType.findMany();
+      resolve: async (_parent, _args, context: Context) => {
+        const memberTypes = await context.prisma.memberType.findMany();
         return memberTypes;
       },
     },
     memberType: {
       type: MemberType,
       args: {
-        id: { type: new GraphQLNonNull(GraphQLString) },
+        id: { type: new GraphQLNonNull(MemberTypeEnumType) },
       },
       resolve: async (
         _parent,
@@ -96,7 +112,6 @@ export const Query = new GraphQLObjectType({
         const member = await context.prisma.memberType.findUnique({
           where: { id: MemberTypeId },
         });
-
         return member;
       },
     },
