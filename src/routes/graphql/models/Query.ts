@@ -1,10 +1,10 @@
 import { GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from 'graphql';
 import { UUIDType } from '../types/uuid.js';
-import { PostType } from './Post.js';
+import { PostType } from './posts/Post.js';
 import { PrismaClient } from '@prisma/client/index.js';
-import { ProfileType } from './Profile.js';
-import { UserType } from './User.js';
-import { MemberType, MemberTypeEnumType } from './Member.js';
+import { ProfileType } from './profiles/Profile.js';
+import { UserType } from './users/User.js';
+import { MemberType, MemberTypeEnumType } from './members/Member.js';
 
 import {
   ResolveTree,
